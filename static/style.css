@@ -16,7 +16,7 @@
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: var(--rounded-btn, 0.5rem);
   height: 3rem;
-  padding-left: 1rem;
+  padding-left: 16px;
   padding-right: 1rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -36,11 +36,11 @@
   outline-color: hsl(var(--bc) / 1);
 }
 
-/* .btn-disabled, */
-/* .btn[disabled], */
-/* .btn:disabled { */
-/*   pointer-events: none; */
-/* } */
+.btn-disabled,
+.btn[disabled],
+.btn:disabled {
+  pointer-events: none;
+}
 .btn-square {
   height: 3rem;
   width: 3rem;

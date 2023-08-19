@@ -1,24 +1,35 @@
 use std::{convert::Infallible, fs};
 
 use lightningcss::{
-    rules::CssRuleList,
-    stylesheet::{ParserOptions, StyleSheet},
+    selector::SelectorList,
+    stylesheet::{ParserOptions, PrinterOptions, StyleSheet},
+    traits::ToCss,
     visit_types,
     visitor::{Visit, VisitTypes, Visitor},
 };
 
 struct Explorer;
 
-impl<'i, T> Visitor<'i, T> for Explorer
-where
-    T: Visit<'i, T, Self>,
-{
+impl<'i> Visitor<'i> for Explorer {
     type Error = Infallible;
 
-    const TYPES: VisitTypes = visit_types!(RULES);
+    const TYPES: VisitTypes = visit_types!(SELECTORS);
 
-    fn visit_rule_list(&mut self, rules: &mut CssRuleList<'i, T>) -> Result<(), Self::Error> {
-        // rules.visit_children(self)
+    fn visit_selector_list(&mut self, selectors: &mut SelectorList<'i>) -> Result<(), Self::Error> {
+        let found: Vec<_> = selectors
+            .0
+            .iter()
+            .filter(|selector| {
+                let s = selector
+                    .to_css_string(PrinterOptions::default())
+                    .unwrap_or_else(|_| "".to_string());
+
+                s.contains(".btn")
+            })
+            .collect::<_>();
+
+        println!("{:?}", found);
+
         Ok(())
     }
 }
@@ -31,33 +42,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     .await?;
 
     let daisy_css = fs::read_to_string("static/style.css")?;
-    let stylesheet = StyleSheet::parse(&daisy_css, ParserOptions::default()).unwrap();
+    let mut stylesheet = StyleSheet::parse(&daisy_css, ParserOptions::default()).unwrap();
     let _target_class = "tabs";
     stylesheet.visit(&mut Explorer)?;
 
-    // for rule in stylesheet.rules.0 {
-    //     match rule {
-    //         CssRule::Style(style) => {
-    //             for selector in style.selectors.0 {
-    //                 println!("{:?}", selector);
-    //             }
-    //         }
-    //         _ => {}
-    //     }
-    // }
-
     Ok(())
 }
-
-// impl<'i, T, V> Visit<'i, T, V> for Explorer
-// where
-//     T: Visit<'i, T, V>,
-//     V: Visitor<'i, T>,
-// {
-//     const CHILD_TYPES: VisitTypes = visit_types!(RULES);
-
-//     // Required method
-//     fn visit_children(&mut self, visitor: &mut V) -> Result<(), V::Error> {
-//         Ok(())
-//     }
-// }
