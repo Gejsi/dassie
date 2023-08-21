@@ -1,38 +1,5 @@
-use std::{convert::Infallible, fs};
-
-use lightningcss::{
-    selector::SelectorList,
-    stylesheet::{ParserOptions, PrinterOptions, StyleSheet},
-    traits::ToCss,
-    visit_types,
-    visitor::{Visit, VisitTypes, Visitor},
-};
-
-struct Explorer;
-
-impl<'i> Visitor<'i> for Explorer {
-    type Error = Infallible;
-
-    const TYPES: VisitTypes = visit_types!(SELECTORS);
-
-    fn visit_selector_list(&mut self, selectors: &mut SelectorList<'i>) -> Result<(), Self::Error> {
-        let found: Vec<_> = selectors
-            .0
-            .iter()
-            .filter(|selector| {
-                let s = selector
-                    .to_css_string(PrinterOptions::default())
-                    .unwrap_or_else(|_| "".to_string());
-
-                s.contains(".btn")
-            })
-            .collect::<_>();
-
-        println!("{:?}", found);
-
-        Ok(())
-    }
-}
+use cssparser::{CowRcStr, Parser as Lexer, ParserInput as LexerInput, Token};
+use std::fs;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -41,10 +8,45 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     .text()
     //     .await?;
 
-    let daisy_css = fs::read_to_string("static/style.css")?;
-    let mut stylesheet = StyleSheet::parse(&daisy_css, ParserOptions::default()).unwrap();
-    let _target_class = "tabs";
-    stylesheet.visit(&mut Explorer)?;
+    let daisy_css = fs::read_to_string("src/static/style.css")?;
+
+    let mut lexer_input = LexerInput::new(&daisy_css);
+    let mut lexer = Lexer::new(&mut lexer_input);
+
+    let mut selector = String::new();
+
+    while let Ok(token) = lexer.next() {
+        match token {
+            Token::Delim(value) => selector.push_str(&value.to_string()),
+
+            Token::WhiteSpace(value) => selector.push_str(value),
+
+            Token::Comma => selector.push_str(", "),
+
+            Token::CurlyBracketBlock => {
+                dbg!(&selector);
+                selector.clear();
+            }
+
+            Token::Ident(value)
+            | Token::AtKeyword(value)
+            | Token::Hash(value)
+            | Token::IDHash(value)
+            | Token::QuotedString(value)
+            | Token::UnquotedUrl(value)
+            | Token::Function(value) => selector.push_str(value),
+
+            Token::ParenthesisBlock => selector.push_str("("),
+
+            Token::SquareBracketBlock => selector.push_str("["),
+
+            Token::CloseParenthesis => selector.push_str(")"),
+
+            Token::CloseSquareBracket => selector.push_str("]"),
+
+            _ => {}
+        }
+    }
 
     Ok(())
 }

@@ -240,6 +240,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "cssparser"
+version = "0.31.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b3df4f93e5fbbe73ec01ec8d3f68bba73107993a5b1e7519273c32db9b0d5be"
+dependencies = [
+ "cssparser-macros",
+ "dtoa-short",
+ "itoa",
+ "phf",
+ "smallvec",
+]
+
+[[package]]
+name = "cssparser"
+version = "0.32.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d54fe63cb80af11947c98a880393db44448d0b512f9b6c318398ae355794cb9"
+dependencies = [
+ "cssparser-macros",
+ "dtoa-short",
+ "itoa",
+ "phf",
+ "smallvec",
+]
+
+[[package]]
 name = "cssparser-macros"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -266,8 +292,11 @@ dependencies = [
 name = "dassie"
 version = "0.1.0"
 dependencies = [
+ "cssparser 0.32.0",
  "lightningcss",
  "reqwest",
+ "selectors",
+ "smallvec",
  "tokio",
 ]
 
@@ -284,6 +313,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a30bfce702bcfa94e906ef82421f2c0e61c076ad76030c16ee5d2e9a32fe193"
 dependencies = [
  "matches",
+]
+
+[[package]]
+name = "derive_more"
+version = "0.99.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fb810d30a7c1953f91334de7244731fc3f3c10d7fe163338a35b9f640960321"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -626,7 +666,7 @@ dependencies = [
  "ahash",
  "bitflags 2.4.0",
  "const-str",
- "cssparser",
+ "cssparser 0.29.6",
  "dashmap",
  "data-encoding",
  "itertools",
@@ -740,6 +780,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "new_debug_unreachable"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e4a24736216ec316047a1fc4252e27dabb04218aa4a3f37c6e7ddbf1f9782b54"
+
+[[package]]
 name = "num_cpus"
 version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -821,7 +867,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3e808c7a75aedcc522bd24187de6903adab3265d690a61f8b8181edaa988377"
 dependencies = [
  "bitflags 2.4.0",
- "cssparser",
+ "cssparser 0.29.6",
  "fxhash",
  "log",
  "phf",
@@ -1224,6 +1270,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "selectors"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4eb30575f3638fc8f6815f448d50cb1a2e255b0897985c8c59f4d37b72a07b06"
+dependencies = [
+ "bitflags 2.4.0",
+ "cssparser 0.31.2",
+ "derive_more",
+ "fxhash",
+ "log",
+ "new_debug_unreachable",
+ "phf",
+ "phf_codegen",
+ "precomputed-hash",
+ "servo_arc",
+ "smallvec",
+]
+
+[[package]]
 name = "serde"
 version = "1.0.183"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1264,6 +1329,15 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "servo_arc"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d036d71a959e00c77a63538b90a6c2390969f9772b096ea837205c6bd0491a44"
+dependencies = [
+ "stable_deref_trait",
 ]
 
 [[package]]
@@ -1330,6 +1404,12 @@ dependencies = [
  "libc",
  "windows-sys",
 ]
+
+[[package]]
+name = "stable_deref_trait"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "syn"

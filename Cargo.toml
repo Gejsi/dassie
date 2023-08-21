@@ -6,6 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+cssparser = "0.32.0"
 lightningcss = { version = "1.0.0-alpha.44", features = ["visitor"] }
 reqwest = { version = "0.11.18", features = ["json"] }
+selectors = "0.25.0"
+smallvec = "1.11.0"
 tokio = { version = "1.30.0", features = ["full"] }
