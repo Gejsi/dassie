@@ -46,6 +46,7 @@
   width: 3rem;
   padding: 0px;
 }
+
 [dir='rtl'] .tab-lifted.tab-active:not(.tab-disabled):not([disabled]):after {
   --circle-pos: top left;
 }
