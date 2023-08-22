@@ -71,7 +71,7 @@ input {
   padding: 0.25rem;
   border-radius: var(--rounded-btn, 0.5rem);
 }
-.tabs-boxed .tab {
+.tabs-boxed[data-value*='foo'] .tab {
   border-radius: var(--rounded-btn, 0.5rem);
 }
 .tabs-boxed .tab-active:not(.tab-disabled):not([disabled]) {
