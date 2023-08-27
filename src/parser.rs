@@ -11,26 +11,26 @@ pub struct Value(String);
 
 #[derive(Debug)]
 pub struct Declaration {
-    property: Property,
-    value: Value,
+    pub property: Property,
+    pub value: Value,
 }
 
 #[derive(Debug)]
 pub struct DeclarationBlock {
-    declarations: Vec<Declaration>,
+    pub declarations: Vec<Declaration>,
 }
 
 #[derive(Debug)]
 pub struct Rule {
-    selectors: Vec<Selector>,
-    declaration_block: DeclarationBlock,
+    pub selectors: Vec<Selector>,
+    pub declaration_block: DeclarationBlock,
 }
 
 #[derive(Debug)]
 pub struct AtRule {
-    identifier: String,
-    condition: String,
-    statements: Vec<Statement>,
+    pub identifier: String,
+    pub condition: String,
+    pub statements: Vec<Statement>,
 }
 
 #[derive(Debug)]
@@ -52,8 +52,7 @@ pub trait Parse<'i, 't> {
 
     fn eat<'a: 't, 'b>(
         lexer: &mut Lexer<'a, 'b>,
-        depth: usize,
-    ) -> Result<String, Self::ParsingError>;
+    ) -> Result<String, ParseError<'a, BasicParseError<'a>>>;
 }
 
 pub struct Parser<'i, 't> {
@@ -78,14 +77,13 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser<'i, 't> {
     }
 
     fn parse_value(&mut self) -> Result<Value, Self::ParsingError> {
-        let text = Self::eat(&mut self.lexer, 0)?.trim().to_string();
+        let text = Self::eat(&mut self.lexer)?.trim().to_string();
         Ok(Value(text))
     }
 
     fn eat<'a: 't, 'b>(
         lexer: &mut Lexer<'a, 'b>,
-        mut depth: usize,
-    ) -> Result<String, Self::ParsingError> {
+    ) -> Result<String, ParseError<'a, BasicParseError<'a>>> {
         let mut text = String::new();
 
         while let Ok(token) = lexer.next_including_whitespace() {
@@ -108,41 +106,35 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser<'i, 't> {
                 Token::SubstringMatch => text.push_str("*="),
 
                 Token::CurlyBracketBlock => {
-                    depth += 1;
+                    println!("'{{' found");
                 }
 
                 Token::ParenthesisBlock => {
                     text.push_str("(");
-                    lexer
-                        .parse_nested_block(|inner_lexer| {
-                            let mut inner_text = Self::eat(inner_lexer, depth).unwrap();
-                            inner_text.push_str(")");
-                            text.push_str(&inner_text.to_string());
-                            Ok::<(), ParseError<'a, BasicParseError<'a>>>(())
-                        })
-                        .unwrap();
+                    lexer.parse_nested_block(|inner_lexer| {
+                        let mut inner_text = Self::eat(inner_lexer)?;
+                        inner_text.push_str(")");
+                        text.push_str(&inner_text.to_string());
+                        Ok::<(), ParseError<'a, BasicParseError<'a>>>(())
+                    })?;
                 }
                 Token::SquareBracketBlock => {
                     text.push_str("[");
-                    lexer
-                        .parse_nested_block(|inner_lexer| {
-                            let mut inner_text = Self::eat(inner_lexer, depth).unwrap();
-                            inner_text.push_str("]");
-                            text.push_str(&inner_text.to_string());
-                            Ok::<(), ParseError<'a, BasicParseError<'a>>>(())
-                        })
-                        .unwrap();
+                    lexer.parse_nested_block(|inner_lexer| {
+                        let mut inner_text = Self::eat(inner_lexer)?;
+                        inner_text.push_str("]");
+                        text.push_str(&inner_text.to_string());
+                        Ok::<(), ParseError<'a, BasicParseError<'a>>>(())
+                    })?;
                 }
                 Token::Function(value) => {
                     text.push_str(&format!("{value}("));
-                    lexer
-                        .parse_nested_block(|inner_lexer| {
-                            let mut inner_text = Self::eat(inner_lexer, depth).unwrap();
-                            inner_text.push_str(")");
-                            text.push_str(&inner_text.to_string());
-                            Ok::<(), ParseError<'a, BasicParseError<'a>>>(())
-                        })
-                        .unwrap();
+                    lexer.parse_nested_block(|inner_lexer| {
+                        let mut inner_text = Self::eat(inner_lexer)?;
+                        inner_text.push_str(")");
+                        text.push_str(&inner_text.to_string());
+                        Ok::<(), ParseError<'a, BasicParseError<'a>>>(())
+                    })?;
                 }
                 _ => {}
             }
