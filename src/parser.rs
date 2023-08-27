@@ -50,7 +50,10 @@ pub trait Parse<'i, 't> {
 
     fn parse_value(&mut self) -> Result<Value, Self::ParsingError>;
 
-    fn eat(&mut self, i: usize) -> Result<String, Self::ParsingError>;
+    fn eat<'a: 't, 'b>(
+        lexer: &mut Lexer<'a, 'b>,
+        depth: usize,
+    ) -> Result<String, Self::ParsingError>;
 }
 
 pub struct Parser<'i, 't> {
@@ -68,23 +71,24 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser<'i, 't> {
         let property = Property(self.lexer.expect_ident()?.to_string());
         self.lexer.expect_colon()?;
         let value = self.parse_value()?;
-        // println!("{value:?}");
-        // println!("{:?}", self.lexer.state());
+        println!("{value:?}");
         self.lexer.expect_semicolon()?;
 
         Ok(Declaration { property, value })
     }
 
     fn parse_value(&mut self) -> Result<Value, Self::ParsingError> {
-        let text = self.eat(0)?;
+        let text = Self::eat(&mut self.lexer, 0)?.trim().to_string();
         Ok(Value(text))
     }
 
-    fn eat(&mut self, mut i: usize) -> Result<String, Self::ParsingError> {
+    fn eat<'a: 't, 'b>(
+        lexer: &mut Lexer<'a, 'b>,
+        mut depth: usize,
+    ) -> Result<String, Self::ParsingError> {
         let mut text = String::new();
 
-        while let Ok(token) = self.lexer.next() {
-            println!("{:?}", token);
+        while let Ok(token) = lexer.next_including_whitespace() {
             match token {
                 Token::Delim(value) => text.push_str(&value.to_string()),
                 Token::WhiteSpace(value) => text.push_str(value),
@@ -104,39 +108,42 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser<'i, 't> {
                 Token::SubstringMatch => text.push_str("*="),
 
                 Token::CurlyBracketBlock => {
-                    i += 1;
+                    depth += 1;
                 }
 
-                // Token::ParenthesisBlock => {
-                //     text.push_str("(");
-                //     self.lexer
-                //         .parse_nested_block(|inner_lexer| {
-                //             let rules = self.eat(i).unwrap();
-                //             rules.push_str(")");
-                //             Ok::<(), ParseError<anyhow::Error>>(())
-                //         })
-                //         .unwrap();
-                // }
-                // Token::SquareBracketBlock => {
-                //     text.push_str("[");
-                //     self.lexer
-                //         .parse_nested_block(|inner_lexer| {
-                //             let rules = self.eat(i).unwrap();
-                //             rules.push_str("]");
-                //             Ok::<(), ParseError<anyhow::Error>>(())
-                //         })
-                //         .unwrap();
-                // }
-                // Token::Function(value) => {
-                //     text.push_str(&format!("{value}("));
-                //     self.lexer
-                //         .parse_nested_block(|inner_lexer| {
-                //             let rules = self.eat(i).unwrap();
-                //             rules.push_str(")");
-                //             Ok::<(), ParseError<anyhow::Error>>(())
-                //         })
-                //         .unwrap();
-                // }
+                Token::ParenthesisBlock => {
+                    text.push_str("(");
+                    lexer
+                        .parse_nested_block(|inner_lexer| {
+                            let mut inner_text = Self::eat(inner_lexer, depth).unwrap();
+                            inner_text.push_str(")");
+                            text.push_str(&inner_text.to_string());
+                            Ok::<(), ParseError<'a, BasicParseError<'a>>>(())
+                        })
+                        .unwrap();
+                }
+                Token::SquareBracketBlock => {
+                    text.push_str("[");
+                    lexer
+                        .parse_nested_block(|inner_lexer| {
+                            let mut inner_text = Self::eat(inner_lexer, depth).unwrap();
+                            inner_text.push_str("]");
+                            text.push_str(&inner_text.to_string());
+                            Ok::<(), ParseError<'a, BasicParseError<'a>>>(())
+                        })
+                        .unwrap();
+                }
+                Token::Function(value) => {
+                    text.push_str(&format!("{value}("));
+                    lexer
+                        .parse_nested_block(|inner_lexer| {
+                            let mut inner_text = Self::eat(inner_lexer, depth).unwrap();
+                            inner_text.push_str(")");
+                            text.push_str(&inner_text.to_string());
+                            Ok::<(), ParseError<'a, BasicParseError<'a>>>(())
+                        })
+                        .unwrap();
+                }
                 _ => {}
             }
         }
@@ -144,59 +151,3 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser<'i, 't> {
         Ok(text)
     }
 }
-
-//     match token {
-//         Token::Delim(value) => text.push_str(&value.to_string()),
-//         Token::WhiteSpace(value) => text.push_str(value),
-//         Token::Comma => text.push_str(","),
-//         Token::Ident(value)
-//         | Token::Hash(value)
-//         | Token::IDHash(value)
-//         | Token::UnquotedUrl(value) => text.push_str(value),
-//         Token::AtKeyword(value) => text.push_str(&format!("@{value}")),
-//         Token::QuotedString(value) => text.push_str(&format!("'{value}'")),
-//         Token::Colon => text.push_str(":"),
-//         Token::Semicolon => return Ok(text),
-//         Token::IncludeMatch => text.push_str("~="),
-//         Token::DashMatch => text.push_str("|="),
-//         Token::PrefixMatch => text.push_str("^="),
-//         Token::SuffixMatch => text.push_str("$="),
-//         Token::SubstringMatch => text.push_str("*="),
-
-//         Token::CurlyBracketBlock => {
-//             i += 1;
-//         }
-
-//         // Token::ParenthesisBlock => {
-//         //     text.push_str("(");
-//         //     self.lexer
-//         //         .parse_nested_block(|inner_lexer| {
-//         //             let rules = self.eat(i).unwrap();
-//         //             rules.push_str(")");
-//         //             Ok::<(), ParseError<anyhow::Error>>(())
-//         //         })
-//         //         .unwrap();
-//         // }
-//         // Token::SquareBracketBlock => {
-//         //     text.push_str("[");
-//         //     self.lexer
-//         //         .parse_nested_block(|inner_lexer| {
-//         //             let rules = self.eat(i).unwrap();
-//         //             rules.push_str("]");
-//         //             Ok::<(), ParseError<anyhow::Error>>(())
-//         //         })
-//         //         .unwrap();
-//         // }
-//         // Token::Function(value) => {
-//         //     text.push_str(&format!("{value}("));
-//         //     self.lexer
-//         //         .parse_nested_block(|inner_lexer| {
-//         //             let rules = self.eat(i).unwrap();
-//         //             rules.push_str(")");
-//         //             Ok::<(), ParseError<anyhow::Error>>(())
-//         //         })
-//         //         .unwrap();
-//         // }
-//         _ => {}
-//     }
-// }
