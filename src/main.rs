@@ -1,11 +1,11 @@
 mod parser;
 
 use cssparser::{Parser as Lexer, ParserInput as LexerInput};
-use std::fs;
+use std::{error::Error, fs};
 
 use crate::parser::{Parse, Parser};
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<(), Box<dyn Error>> {
     let daisy_css = fs::read_to_string("static/mini.css")?;
 
     let mut lexer_input = LexerInput::new(&daisy_css);

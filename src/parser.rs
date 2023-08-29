@@ -39,12 +39,16 @@ pub enum Statement {
     AtRule,
 }
 
-struct Stylesheet(Vec<Statement>);
+pub struct Stylesheet {
+    pub statements: Vec<Statement>,
+}
 
 pub trait Parse<'i, 't> {
     type ParsingError;
 
     fn new(lexer: Lexer<'i, 't>) -> Self;
+
+    fn parse_declaration_block(&mut self) -> Result<DeclarationBlock, Self::ParsingError>;
 
     fn parse_declaration(&mut self) -> Result<Declaration, Self::ParsingError>;
 
@@ -66,12 +70,19 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser<'i, 't> {
         Parser { lexer }
     }
 
+    fn parse_declaration_block(&mut self) -> Result<DeclarationBlock, Self::ParsingError> {
+        Ok(DeclarationBlock {
+            declarations: vec![],
+        })
+    }
+
     fn parse_declaration(&mut self) -> Result<Declaration, Self::ParsingError> {
         let property = Property(self.lexer.expect_ident()?.to_string());
         self.lexer.expect_colon()?;
         let value = self.parse_value()?;
-        println!("{value:?}");
-        self.lexer.expect_semicolon()?;
+        if !self.lexer.is_exhausted() {
+            self.lexer.expect_semicolon()?;
+        }
 
         Ok(Declaration { property, value })
     }
@@ -107,6 +118,7 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser<'i, 't> {
 
                 Token::CurlyBracketBlock => {
                     println!("'{{' found");
+                    return Ok(text);
                 }
 
                 Token::ParenthesisBlock => {
