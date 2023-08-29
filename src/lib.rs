@@ -9,8 +9,7 @@ mod tests {
     fn parse_declaration() {
         let input = "border-color: hsl(var(--b2) / var(--tw-border-opacity));";
         let mut lexer_input = LexerInput::new(&input);
-        let lexer = Lexer::new(&mut lexer_input);
-        let mut parser = Parser::new(lexer);
-        parser.parse_declaration().unwrap();
+        let mut lexer = Lexer::new(&mut lexer_input);
+        Parser::parse_declaration(&mut lexer).unwrap();
     }
 }
