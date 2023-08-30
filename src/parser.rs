@@ -1,4 +1,4 @@
-use cssparser::{BasicParseError, Delimiter, ParseError, ParseErrorKind, Parser as Lexer, Token};
+use cssparser::{BasicParseError, Delimiter, ParseError, Parser as Lexer, Token};
 
 #[derive(Debug)]
 pub struct Selector(String);
@@ -10,10 +10,7 @@ pub struct Property(String);
 pub struct Value(String);
 
 #[derive(Debug)]
-pub struct Declaration {
-    pub property: Property,
-    pub value: Value,
-}
+pub struct Declaration(Property, Value);
 
 #[derive(Debug)]
 pub struct DeclarationBlock {
@@ -84,7 +81,7 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser {
             lexer.expect_colon()?;
             let value = Self::parse_value(lexer)?;
 
-            Ok(Declaration { property, value })
+            Ok(Declaration(property, value))
         })
     }
 
