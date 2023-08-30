@@ -1,4 +1,4 @@
-use cssparser::{BasicParseError, ParseError, Parser as Lexer, Token};
+use cssparser::{BasicParseError, Delimiter, ParseError, ParseErrorKind, Parser as Lexer, Token};
 
 #[derive(Debug)]
 pub struct Selector(String);
@@ -65,29 +65,27 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser {
     fn parse_declaration_block(
         lexer: &mut Lexer<'i, 't>,
     ) -> Result<DeclarationBlock, Self::ParsingError> {
-        let declarations: Vec<Declaration> = Vec::new();
-
         lexer.expect_curly_bracket_block()?;
-        lexer.parse_nested_block(|inner_lexer| {
-            let decl = Self::parse_declaration(inner_lexer)?;
+        lexer.parse_nested_block(|lexer| {
+            let mut declarations: Vec<Declaration> = Vec::new();
 
-            println!("{decl:?}");
+            while !lexer.is_exhausted() {
+                let decl = Self::parse_declaration(lexer)?;
+                declarations.push(decl);
+            }
 
-            Ok::<(), Self::ParsingError>(())
-        })?;
-
-        Ok(DeclarationBlock { declarations })
+            Ok(DeclarationBlock { declarations })
+        })
     }
 
     fn parse_declaration(lexer: &mut Lexer<'i, 't>) -> Result<Declaration, Self::ParsingError> {
-        let property = Property(lexer.expect_ident()?.to_string());
-        lexer.expect_colon()?;
-        let value = Self::parse_value(lexer)?;
-        if !lexer.is_exhausted() {
-            lexer.expect_semicolon()?;
-        }
+        lexer.parse_until_after(Delimiter::Semicolon, |lexer| {
+            let property = Property(lexer.expect_ident()?.to_string());
+            lexer.expect_colon()?;
+            let value = Self::parse_value(lexer)?;
 
-        Ok(Declaration { property, value })
+            Ok(Declaration { property, value })
+        })
     }
 
     fn parse_value(lexer: &mut Lexer<'i, 't>) -> Result<Value, Self::ParsingError> {
@@ -103,10 +101,8 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser {
                 Token::Delim(value) => text.push_str(&value.to_string()),
                 Token::WhiteSpace(value) => text.push_str(value),
                 Token::Comma => text.push_str(","),
-                Token::Ident(value)
-                | Token::Hash(value)
-                | Token::IDHash(value)
-                | Token::UnquotedUrl(value) => text.push_str(value),
+                Token::Ident(value) | Token::UnquotedUrl(value) => text.push_str(value),
+                Token::Hash(value) | Token::IDHash(value) => text.push_str(&format!("#{value}")),
                 Token::AtKeyword(value) => text.push_str(&format!("@{value}")),
                 Token::QuotedString(value) => text.push_str(&format!("'{value}'")),
                 Token::Colon => text.push_str(":"),
@@ -149,6 +145,14 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser {
                         Ok::<(), Self::ParsingError>(())
                     })?;
                 }
+
+                // Token::Number {
+                //     has_sign,
+                //     value,
+                //     int_value,
+                // } => text.push_str(&format!("{value}")),
+                // Token::Percentage { has_sign, unit_value, int_value } => todo!(),
+                // Token::Dimension { has_sign, value, int_value, unit } => todo!(),
                 _ => {}
             }
         }

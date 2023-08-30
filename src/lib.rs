@@ -12,4 +12,12 @@ mod tests {
         let mut lexer = Lexer::new(&mut lexer_input);
         Parser::parse_declaration(&mut lexer).unwrap();
     }
+
+    #[test]
+    fn parse_declaration_block() {
+        let input = "{ border-color: red; color: red; }";
+        let mut lexer_input = LexerInput::new(&input);
+        let mut lexer = Lexer::new(&mut lexer_input);
+        Parser::parse_declaration_block(&mut lexer).unwrap();
+    }
 }
