@@ -1,3 +1,4 @@
+mod nodes;
 mod parser;
 
 #[cfg(test)]

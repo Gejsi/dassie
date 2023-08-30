@@ -1,44 +1,6 @@
 use cssparser::{BasicParseError, Delimiter, ParseError, Parser as Lexer, Token};
 
-#[derive(Debug)]
-pub struct Selector(String);
-
-#[derive(Debug)]
-pub struct Property(String);
-
-#[derive(Debug)]
-pub struct Value(String);
-
-#[derive(Debug)]
-pub struct Declaration(Property, Value);
-
-#[derive(Debug)]
-pub struct DeclarationBlock {
-    pub declarations: Vec<Declaration>,
-}
-
-#[derive(Debug)]
-pub struct Rule {
-    pub selectors: Vec<Selector>,
-    pub declaration_block: DeclarationBlock,
-}
-
-#[derive(Debug)]
-pub struct AtRule {
-    pub identifier: String,
-    pub condition: String,
-    pub statements: Vec<Statement>,
-}
-
-#[derive(Debug)]
-pub enum Statement {
-    Rule,
-    AtRule,
-}
-
-pub struct Stylesheet {
-    pub statements: Vec<Statement>,
-}
+use crate::nodes::{Declaration, DeclarationBlock, Property, Value};
 
 pub trait Parse<'i: 't, 't> {
     type ParsingError;
@@ -143,13 +105,41 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser {
                     })?;
                 }
 
-                // Token::Number {
-                //     has_sign,
-                //     value,
-                //     int_value,
-                // } => text.push_str(&format!("{value}")),
-                // Token::Percentage { has_sign, unit_value, int_value } => todo!(),
-                // Token::Dimension { has_sign, value, int_value, unit } => todo!(),
+                Token::Number {
+                    value, int_value, ..
+                } => {
+                    if let Some(int_value) = int_value {
+                        text.push_str(&format!("{int_value}"));
+                    } else {
+                        text.push_str(&format!("{value}"));
+                    }
+                }
+
+                Token::Percentage {
+                    unit_value,
+                    int_value,
+                    ..
+                } => {
+                    if let Some(int_value) = int_value {
+                        text.push_str(&format!("{int_value}%"));
+                    } else {
+                        text.push_str(&format!("{}%", unit_value * 100.0));
+                    }
+                }
+
+                Token::Dimension {
+                    value,
+                    int_value,
+                    unit,
+                    ..
+                } => {
+                    if let Some(int_value) = int_value {
+                        text.push_str(&format!("{int_value}{unit}"));
+                    } else {
+                        text.push_str(&format!("{value}{unit}"));
+                    }
+                }
+
                 _ => {}
             }
         }
