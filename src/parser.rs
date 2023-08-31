@@ -1,9 +1,11 @@
 use cssparser::{BasicParseError, Delimiter, ParseError, Parser as Lexer, Token};
 
-use crate::nodes::{Declaration, DeclarationBlock, Property, Value};
+use crate::nodes::{Declaration, DeclarationBlock, Property, Selector, Value};
 
 pub trait Parse<'i: 't, 't> {
     type ParsingError;
+
+    fn parse_selector(lexer: &mut Lexer<'i, 't>) -> Result<Selector, Self::ParsingError>;
 
     fn parse_declaration_block(
         lexer: &mut Lexer<'i, 't>,
@@ -20,6 +22,13 @@ pub struct Parser;
 
 impl<'i: 't, 't> Parse<'i, 't> for Parser {
     type ParsingError = ParseError<'i, BasicParseError<'i>>;
+
+    fn parse_selector(lexer: &mut Lexer<'i, 't>) -> Result<Selector, Self::ParsingError> {
+        lexer.parse_until_before(Delimiter::CurlyBracketBlock, |lexer| {
+            let text = Self::eat(lexer)?.trim().to_string();
+            Ok(Selector(text))
+        })
+    }
 
     fn parse_declaration_block(
         lexer: &mut Lexer<'i, 't>,

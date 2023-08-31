@@ -1,5 +1,5 @@
 #[derive(Debug)]
-pub struct Selector(String);
+pub struct Selector(pub String);
 
 #[derive(Debug)]
 pub struct Property(pub String);

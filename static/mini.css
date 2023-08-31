@@ -18,6 +18,9 @@
   line-height: -1.5;
   font-size: 14.5;
   animation-delay: -2s;
+  background: center / contain no-repeat
+      url('../../media/examples/firefox-logo.svg'),
+    #eee 35% url('../../media/examples/lizard.png');
 
   /* Colors */
   /* color: red; */
