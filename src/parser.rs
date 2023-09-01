@@ -1,11 +1,13 @@
 use cssparser::{BasicParseError, Delimiter, ParseError, Parser as Lexer, Token};
 
-use crate::nodes::{Declaration, DeclarationBlock, Property, Selector, Value};
+use crate::nodes::{Declaration, DeclarationBlock, Property, Rule, Selector, Value};
 
 pub trait Parse<'i: 't, 't> {
     type ParsingError;
 
-    fn parse_selector(lexer: &mut Lexer<'i, 't>) -> Result<Selector, Self::ParsingError>;
+    fn parse_rule(lexer: &mut Lexer<'i, 't>) -> Result<Rule, Self::ParsingError>;
+
+    fn parse_selectors(lexer: &mut Lexer<'i, 't>) -> Result<Vec<Selector>, Self::ParsingError>;
 
     fn parse_declaration_block(
         lexer: &mut Lexer<'i, 't>,
@@ -23,10 +25,22 @@ pub struct Parser;
 impl<'i: 't, 't> Parse<'i, 't> for Parser {
     type ParsingError = ParseError<'i, BasicParseError<'i>>;
 
-    fn parse_selector(lexer: &mut Lexer<'i, 't>) -> Result<Selector, Self::ParsingError> {
+    fn parse_rule(lexer: &mut Lexer<'i, 't>) -> Result<Rule, Self::ParsingError> {
+        let selectors = Self::parse_selectors(lexer)?;
+        let declaration_block = Self::parse_declaration_block(lexer)?;
+
+        Ok(Rule {
+            selectors,
+            declaration_block,
+        })
+    }
+
+    fn parse_selectors(lexer: &mut Lexer<'i, 't>) -> Result<Vec<Selector>, Self::ParsingError> {
         lexer.parse_until_before(Delimiter::CurlyBracketBlock, |lexer| {
-            let text = Self::eat(lexer)?.trim().to_string();
-            Ok(Selector(text))
+            lexer.parse_comma_separated(|lexer| {
+                let text = Self::eat(lexer)?.trim().to_string();
+                Ok(Selector(text))
+            })
         })
     }
 
@@ -82,7 +96,6 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser {
                 Token::SubstringMatch => text.push_str("*="),
 
                 Token::CurlyBracketBlock => {
-                    println!("'{{' found");
                     return Ok(text);
                 }
 

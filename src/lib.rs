@@ -35,10 +35,25 @@ center / contain no-repeat
     }
 
     #[test]
-    fn parse_selector() {
-        let input = "input {}";
+    fn parse_selectors() {
+        let input = "input, .btn {}";
         let mut lexer_input = LexerInput::new(&input);
         let mut lexer = Lexer::new(&mut lexer_input);
-        Parser::parse_selector(&mut lexer).unwrap();
+        Parser::parse_selectors(&mut lexer).unwrap();
+    }
+
+    #[test]
+    fn parse_rule() {
+        let input = r##"
+        [dir='rtl'] .tab-lifted.tab-active:not(.tab-disabled):not([disabled]):after,
+        input {
+          color: red;
+          background: center / contain no-repeat
+              url('../../media/examples/firefox-logo.svg'),
+            #eee 35% url('../../media/examples/lizard.png');
+        }"##;
+        let mut lexer_input = LexerInput::new(&input);
+        let mut lexer = Lexer::new(&mut lexer_input);
+        Parser::parse_rule(&mut lexer).unwrap();
     }
 }
