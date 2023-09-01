@@ -1,7 +1,10 @@
-[dir='rtl'] .tab-lifted.tab-active:not(.tab-disabled):not([disabled]):after,
-input {
+[dir='rtl'] .tab-lifted.tab-active:not(.tab-disabled):not([disabled]):after {
   color: red;
   background: center / contain no-repeat
       url('../../media/examples/firefox-logo.svg'),
     #eee 35% url('../../media/examples/lizard.png');
+}
+
+input {
+  border: 1px solid pink;
 }

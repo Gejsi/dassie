@@ -1,6 +1,6 @@
 use cssparser::{BasicParseError, Delimiter, ParseError, Parser as Lexer, Token};
 
-use crate::nodes::{Declaration, DeclarationBlock, Property, Rule, Selector, Value};
+use crate::nodes::{Declaration, Property, Rule, Selector, Value};
 
 pub trait Parse<'i: 't, 't> {
     type ParsingError;
@@ -11,7 +11,7 @@ pub trait Parse<'i: 't, 't> {
 
     fn parse_declaration_block(
         lexer: &mut Lexer<'i, 't>,
-    ) -> Result<DeclarationBlock, Self::ParsingError>;
+    ) -> Result<Vec<Declaration>, Self::ParsingError>;
 
     fn parse_declaration(lexer: &mut Lexer<'i, 't>) -> Result<Declaration, Self::ParsingError>;
 
@@ -46,7 +46,7 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser {
 
     fn parse_declaration_block(
         lexer: &mut Lexer<'i, 't>,
-    ) -> Result<DeclarationBlock, Self::ParsingError> {
+    ) -> Result<Vec<Declaration>, Self::ParsingError> {
         lexer.expect_curly_bracket_block()?;
         lexer.parse_nested_block(|lexer| {
             let mut declarations: Vec<Declaration> = Vec::new();
@@ -56,7 +56,7 @@ impl<'i: 't, 't> Parse<'i, 't> for Parser {
                 declarations.push(decl);
             }
 
-            Ok(DeclarationBlock { declarations })
+            Ok(declarations)
         })
     }
 

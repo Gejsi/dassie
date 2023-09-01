@@ -8,6 +8,35 @@ pub struct Property(pub String);
 pub struct Value(pub String);
 
 #[derive(Debug)]
+pub struct Declaration(pub Property, pub Value);
+
+#[derive(Debug)]
+pub struct Rule {
+    pub selectors: Vec<Selector>,
+    pub declaration_block: Vec<Declaration>,
+}
+
+#[derive(Debug)]
+pub struct AtRule {
+    pub identifier: String,
+    pub condition: String,
+    pub statements: Vec<Statement>,
+}
+
+#[derive(Debug)]
+pub enum Statement {
+    Rule(Rule),
+    AtRule(AtRule),
+}
+
+#[derive(Debug)]
+pub struct Stylesheet {
+    pub statements: Vec<Statement>,
+}
+
+// ------------------------------------------------------------
+// TODO: refine the AST nodes for values (used both in declarations and selectors).
+#[derive(Debug)]
 pub enum Numeric {
     Number(bool, f64),
     Percentage(bool, f64),
@@ -28,35 +57,4 @@ pub enum Value2 {
     Numeric,
     Functional(FunctionCall),
 }
-
-#[derive(Debug)]
-pub struct Declaration(pub Property, pub Value);
-
-#[derive(Debug)]
-pub struct DeclarationBlock {
-    pub declarations: Vec<Declaration>,
-}
-
-#[derive(Debug)]
-pub struct Rule {
-    pub selectors: Vec<Selector>,
-    pub declaration_block: DeclarationBlock,
-}
-
-#[derive(Debug)]
-pub struct AtRule {
-    pub identifier: String,
-    pub condition: String,
-    pub statements: Vec<Statement>,
-}
-
-#[derive(Debug)]
-pub enum Statement {
-    Rule,
-    AtRule,
-}
-
-#[derive(Debug)]
-pub struct Stylesheet {
-    pub statements: Vec<Statement>,
-}
+// ------------------------------------------------------------
