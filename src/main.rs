@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("--------------------------------------------------------------------------");
     // let mut parser = Parser::new(lexer);
-    let res = Parser::parse_rule(&mut lexer).unwrap();
+    let res = Parser::parse_at_rule(&mut lexer).unwrap();
     println!("{:#?}", res);
     println!("--------------------------------------------------------------------------");
 

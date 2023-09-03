@@ -9,9 +9,9 @@ mod tests {
     #[test]
     fn parse_value() {
         let input = r#"
-center / contain no-repeat
-      url('../../media/examples/firefox-logo.svg'),
-    #eee 35% url('../../media/examples/lizard.png')
+        center / contain no-repeat
+              url('../../media/examples/firefox-logo.svg'),
+            #eee 35% url('../../media/examples/lizard.png')
         "#;
         let mut lexer_input = LexerInput::new(&input);
         let mut lexer = Lexer::new(&mut lexer_input);
@@ -55,5 +55,26 @@ center / contain no-repeat
         let mut lexer_input = LexerInput::new(&input);
         let mut lexer = Lexer::new(&mut lexer_input);
         Parser::parse_rule(&mut lexer).unwrap();
+    }
+
+    #[test]
+    fn parse_at_rule() {
+        let input = r##"
+        @media screen and (max-width: 800px),
+          (min-resolution: 192dpi) and (max-width: 768px) {
+          [dir='rtl'] .tab-lifted.tab-active:not(.tab-disabled):not([disabled]):after {
+            border: 1px solid red;
+            background: red;
+          }
+
+          input {
+            color: red;
+            animation: spin 300ms ease-in;
+          }
+        }
+        "##;
+        let mut lexer_input = LexerInput::new(&input);
+        let mut lexer = Lexer::new(&mut lexer_input);
+        Parser::parse_at_rule(&mut lexer).unwrap();
     }
 }

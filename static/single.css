@@ -1,10 +1,12 @@
-[dir='rtl'] .tab-lifted.tab-active:not(.tab-disabled):not([disabled]):after {
-  color: red;
-  background: center / contain no-repeat
-      url('../../media/examples/firefox-logo.svg'),
-    #eee 35% url('../../media/examples/lizard.png');
-}
+@media screen and (max-width: 800px),
+  (min-resolution: 192dpi) and (max-width: 768px) {
+  [dir='rtl'] .tab-lifted.tab-active:not(.tab-disabled):not([disabled]):after {
+    border: 1px solid red;
+    background: red;
+  }
 
-input {
-  border: 1px solid pink;
+  input {
+    color: red;
+    animation: spin 300ms ease-in;
+  }
 }

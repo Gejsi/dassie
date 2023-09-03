@@ -25,8 +25,8 @@ pub struct AtRule {
 
 #[derive(Debug)]
 pub enum Statement {
-    Rule(Rule),
-    AtRule(AtRule),
+    Rule(Option<Rule>),
+    AtRule(Option<AtRule>),
 }
 
 #[derive(Debug)]

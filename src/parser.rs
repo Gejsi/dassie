@@ -1,9 +1,13 @@
 use cssparser::{BasicParseError, Delimiter, ParseError, Parser as Lexer, Token};
 
-use crate::nodes::{Declaration, Property, Rule, Selector, Value};
+use crate::nodes::{AtRule, Declaration, Property, Rule, Selector, Value};
 
 pub trait Parse<'i: 't, 't> {
     type ParsingError;
+
+    // fn parse_statement(lexer: &mut Lexer<'i, 't>) -> Result<Statement, Self::ParsingError>;
+
+    fn parse_at_rule(lexer: &mut Lexer<'i, 't>) -> Result<AtRule, Self::ParsingError>;
 
     fn parse_rule(lexer: &mut Lexer<'i, 't>) -> Result<Rule, Self::ParsingError>;
 
@@ -24,6 +28,25 @@ pub struct Parser;
 
 impl<'i: 't, 't> Parse<'i, 't> for Parser {
     type ParsingError = ParseError<'i, BasicParseError<'i>>;
+
+    fn parse_at_rule(lexer: &mut Lexer<'i, 't>) -> Result<AtRule, Self::ParsingError> {
+        Self::parse_selectors(lexer)?;
+        lexer.expect_curly_bracket_block()?;
+        lexer.parse_nested_block(|lexer| {
+            while !lexer.is_exhausted() {
+                let rule = Self::parse_rule(lexer)?;
+                dbg!(rule);
+            }
+
+            Ok::<(), Self::ParsingError>(())
+        })?;
+
+        Ok(AtRule {
+            identifier: "media".to_string(),
+            condition: "".to_string(),
+            statements: vec![],
+        })
+    }
 
     fn parse_rule(lexer: &mut Lexer<'i, 't>) -> Result<Rule, Self::ParsingError> {
         let selectors = Self::parse_selectors(lexer)?;
